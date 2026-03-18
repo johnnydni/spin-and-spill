@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Spin & Spill">
+<meta name="apple-mobile-web-app-title" content="Spin & Spill by Illy">
 <meta name="theme-color" content="#0a0a0f">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -461,128 +461,6 @@ function initSplash() {
   splash.addEventListener('click', dismissSplash, {once:true});
   setTimeout(dismissSplash, 3000);
 }
-
-// ════════════════════════════════════════════════════════════
-// AUDIO ENGINE  (Web Audio API — no files needed)
-// ════════════════════════════════════════════════════════════
-let audioCtx = null, masterGain = null;
-let oscNodes = [], lfoNodes = [], filterNode = null;
-let currentAudioLevel = 'soft';
-
-const AUDIO_CFG = {
-  soft:  { freqs:[55,82.4,110,164.8], detune:3,  lfoRate:0.07, lfoDepth:6,  cutoff:380,  vol:0.14 },
-  wild:  { freqs:[55,73.4,110,146.8], detune:7,  lfoRate:0.2,  lfoDepth:20, cutoff:750,  vol:0.18 },
-  chaos: { freqs:[55,65.4,110,130.8], detune:14, lfoRate:0.38, lfoDepth:40, cutoff:1400, vol:0.24 },
-};
-
-function audioStart() {
-  if (muted || audioCtx) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 3.5);
-    masterGain.connect(audioCtx.destination);
-    buildLayer('soft');
-  } catch(e) { console.warn('Audio unavailable', e); }
-}
-
-function buildLayer(level) {
-  if (!audioCtx) return;
-  // Tear down previous nodes gracefully
-  oscNodes.forEach(o => { try { o.stop(audioCtx.currentTime + 0.05); } catch(e){} });
-  lfoNodes.forEach(l => { try { l.stop(audioCtx.currentTime + 0.05); l.disconnect(); } catch(e){} });
-  if (filterNode) { try { filterNode.disconnect(); } catch(e){} }
-  oscNodes = []; lfoNodes = [];
-
-  const c = AUDIO_CFG[level];
-
-  // Lowpass filter — character of each level
-  filterNode = audioCtx.createBiquadFilter();
-  filterNode.type = 'lowpass';
-  filterNode.frequency.value = c.cutoff;
-  filterNode.Q.value = 1.4;
-  filterNode.connect(masterGain);
-
-  // Warm delay/reverb
-  const delay = audioCtx.createDelay(2.0);
-  delay.delayTime.value = 0.5;
-  const delayFb = audioCtx.createGain();
-  delayFb.gain.value = 0.28;
-  const delayOut = audioCtx.createGain();
-  delayOut.gain.value = 0.22;
-  delay.connect(delayFb); delayFb.connect(delay);
-  delay.connect(delayOut); delayOut.connect(filterNode);
-
-  // Drone oscillators
-  c.freqs.forEach((freq, i) => {
-    const osc = audioCtx.createOscillator();
-    osc.type = i % 2 === 0 ? 'sine' : 'triangle';
-    osc.frequency.value = freq;
-    osc.detune.value = (i % 2 === 0 ? 1 : -1) * c.detune;
-
-    const vGain = audioCtx.createGain();
-    vGain.gain.value = c.vol / c.freqs.length;
-
-    // LFO tremolo per voice
-    const lfo = audioCtx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = c.lfoRate + i * 0.015;
-    const lfoAmt = audioCtx.createGain();
-    lfoAmt.gain.value = c.lfoDepth;
-    lfo.connect(lfoAmt); lfoAmt.connect(osc.frequency);
-    lfo.start(); lfoNodes.push(lfo);
-
-    osc.connect(vGain);
-    vGain.connect(filterNode);
-    vGain.connect(delay);
-    osc.start(); oscNodes.push(osc);
-  });
-
-  // Sub bass — adds weight to wild/chaos
-  if (level !== 'soft') {
-    const sub = audioCtx.createOscillator();
-    sub.type = 'sine';
-    sub.frequency.value = 27.5;
-    const subGain = audioCtx.createGain();
-    subGain.gain.value = level === 'chaos' ? 0.1 : 0.055;
-    sub.connect(subGain); subGain.connect(masterGain);
-    sub.start(); oscNodes.push(sub);
-  }
-
-  currentAudioLevel = level;
-}
-
-function audioSetLevel(level) {
-  if (!audioCtx || muted || level === currentAudioLevel) return;
-  // Crossfade: fade down → rebuild → fade up
-  masterGain.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 1.2);
-  setTimeout(() => {
-    if (!muted && audioCtx) {
-      buildLayer(level);
-      masterGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-      masterGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 2.0);
-    }
-  }, 1300);
-}
-
-function toggleMute() {
-  muted = !muted;
-  const btn = document.getElementById('mute-btn');
-  document.getElementById('mute-icon').textContent  = muted ? '🔇' : '🔊';
-  document.getElementById('mute-label').textContent = muted ? 'Musik aus' : 'Musik an';
-  btn.classList.toggle('muted', muted);
-
-  if (muted) {
-    if (masterGain) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
-  } else {
-    if (!audioCtx) { audioStart(); return; }
-    buildLayer(currentAudioLevel);
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.6);
-  }
-}
-
 // ════════════════════════════════════════════════════════════
 // SETUP
 // ════════════════════════════════════════════════════════════
@@ -792,7 +670,7 @@ function dismissOverlay(){ document.getElementById('level-overlay').classList.re
 // INIT
 // ════════════════════════════════════════════════════════════
 initSplash();
-addPlayer(); addPlayer(); addPlayer();
+addPlayer(); addPlayer();
 renderSetup();
 
 if('serviceWorker' in navigator){
