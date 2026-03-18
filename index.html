@@ -322,15 +322,15 @@ canvas#wheel {
     <canvas id="splash-canvas" width="180" height="180"></canvas>
   </div>
   <div class="splash-title">Spin &amp; Spill</div>
-  <div class="splash-sub">Dreh. Ehrlich sein. Oder trinken.</div>
-  <div class="splash-tap">Tippen zum Starten</div>
+  <div class="splash-sub">Dreh. Sei ehrlich oder mutig. Oder trink ;).</div>
+  <div class="splash-tap">Tippen zum Starten!</div>
 </div>
 
 <!-- LEVEL OVERLAY -->
 <div class="level-overlay" id="level-overlay">
   <div class="overlay-emoji" id="overlay-emoji">😏</div>
   <div class="overlay-title" id="overlay-title">Wild Mode</div>
-  <div class="overlay-sub"   id="overlay-sub">Die Fragen werden heißer.</div>
+  <div class="overlay-sub"   id="overlay-sub">Die Fragen werden wilder.</div>
   <button class="overlay-btn" onclick="dismissOverlay()">Weiter gehts →</button>
 </div>
 
@@ -338,7 +338,7 @@ canvas#wheel {
 <div class="screen" id="screen-setup">
   <div class="logo">
     <h1>Spin &amp; Spill</h1>
-    <p>Dreh. Ehrlich sein. Oder trinken.</p>
+    <p>Dreh. Sei ehrlich oder mutig. Oder trink ;)</p>
   </div>
   <p class="setup-label">Spieler eingeben</p>
   <div class="player-list" id="player-list"></div>
@@ -368,10 +368,6 @@ canvas#wheel {
       <div class="result-emoji">🎡</div>
       <div class="result-body"><div class="result-text" style="opacity:0.45">Dreh das Rad...</div></div>
     </div>
-    <button class="mute-btn" id="mute-btn" onclick="toggleMute()">
-      <span id="mute-icon">🔇</span>
-      <span id="mute-label">Musik starten</span>
-    </button>
   </div>
 </div>
 
@@ -386,6 +382,7 @@ const N = 6, ARC = Math.PI*2/N;
 const CONTENT = {
   soft:{
     wahrheit_m:[
+                "Was ist deine größte Angst?",
                 "Wenn Angela Merkel die letzte Frau auf Erden wäre, würdest du mit ihr die Menschheit retten?",
                 "Du bist Bundeskanzler, was ist deine erste Amtshandlung?",
                 "Was war das lustigste, was du diese Woche gedacht/erlebt hast?",
@@ -394,6 +391,7 @@ const CONTENT = {
                ],
     
     wahrheit_f:[
+                "Was ist deine größte Angst?",
                 "Wenn Dieter Bohlen der letzte Mann auf Erden wäre, würdest du mit ihm die Menschheit retten?",
                 "Du bist Bundeskanzler, was ist deine erste Amtshandlung?",
                 "Was war das lustigste, was du diese Woche gedacht/erlebt hast?",
@@ -401,6 +399,7 @@ const CONTENT = {
                 ],
     
     pflicht_m:[
+              "Mach der Person neben dir eine aufrichtiges Kompliment.",
               "Zeige das letzte Meme, das du verschickt hast", 
                 "Stell unter Probe, wie gut dein Gegenüber umarmen kann!",
                "Nimm den Mund voll Wasser und lass den anderen Grimassen oder ähnliches machen! 1min - los!",
@@ -408,7 +407,9 @@ const CONTENT = {
                 "Sing das Intro von Löwenkönig, so afrikanisch wie möglich 🇿🇦"
               ],
     
-    pflicht_f:["Zeige das letzte Meme, das du verschickt hast", 
+    pflicht_f:[
+                "Mach der Person neben dir eine aufrichtiges Kompliment.",
+                "Zeige das letzte Meme, das du verschickt hast", 
                 "Stell unter Probe, wie gut dein Gegenüber umarmen kann!",
                "Nimm den Mund voll Wasser und lass den anderen Grimassen oder ähnliches machen! 1min - los!",
                "Präsentiere deinen besten Akzent!",
@@ -420,7 +421,8 @@ const CONTENT = {
                 "Würdest du deine gebrauchten Socken online verkaufen?",
                 "Du bist in der Wüste. Am verdursten. würdest du Blut trinken, wenn es dein leben rettet?",
                 "Welche Nation würdest du auslöschen, wenn du könntest?",
-                "Du musst Mutter/Vater deines Chefs verführen. Wie gehst du vor?"
+                "Du musst Mutter/Vater deines Chefs verführen. Wie gehst du vor?",
+                "Boobs or Booty? :D"
                 ],
 
     wahrheit_f:[
@@ -428,15 +430,18 @@ const CONTENT = {
                 "Was war das ekligste, was du jemals in einer Umkleide gesehen hast?",
                 "Könntest du dir vorstellen, jemanden aus Indien zu heiraten?",
                 "Du musst Mutter/Vater deines Chefs verführen. Wie gehst du vor?"            
+                "Boobs or Booty? :D"
                 ],
     
     pflicht_m:[
               "Zeige deine verführerischen Gang!",
               "Du bist ein Bodybuilder. Heb dein Gegenüber hoch! Wenn du es nicht schaffst, verrat die Farbe deiner Unterwäsche 😏 ",
-              "Lass dein Gegenüber deinem letzten Kontakt eine Nachricht schreiben 💬"
+              "Lass dein Gegenüber deinem letzten Kontakt eine Nachricht schreiben 💬",
+              "Beweise deine Bauchtanz Skills!"
               ],
     
     pflicht_f:[
+              "Beweise deine Twerk Skills!",
               "Zeige deine verführerischen Gang!",
               "Du bist ein Bodybuilder. Heb dein Gegenüber hoch! Wenn du es nicht schaffst, verrat die Farbe deiner Unterwäsche 😏 ",
               "Lass dein Gegenüber deinem letzten Kontakt eine Nachricht schreiben 💬"
@@ -594,7 +599,7 @@ function renderPlayerStrip() {
 }
 
 // ── HUD ───────────────────────────────────────────────────────────────────────
-function getLevel(){ return totalShots>=4?'chaos':totalShots>=2?'wild':'soft'; }
+function getLevel(){ return totalShots>=10?'chaos':totalShots>=5?'wild':'soft'; }
 
 function updateHUD() {
   document.getElementById('progress-fill').style.width = Math.min(totalShots/5*100,100)+'%';
