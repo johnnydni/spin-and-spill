@@ -385,22 +385,95 @@ const N = 6, ARC = Math.PI*2/N;
 
 const CONTENT = {
   soft:{
-    wahrheit_m:["Bist du cool?"],
-    wahrheit_f:[""],
-    pflicht_m:["Akzeptiere es, dass Illy total cool ist, und diese App programmiert hat."],
-    pflicht_f:[""],
+    wahrheit_m:[
+                "Wenn Angela Merkel die letzte Frau auf Erden wäre, würdest du mit ihr die Menschheit retten?",
+                "Du bist Bundeskanzler, was ist deine erste Amtshandlung?",
+                "Was war das lustigste, was du diese Woche gedacht/erlebt hast?",
+                "Was war dein erster Gedanke, als du dein Gegenüber zum ersten mal sahst?",
+                "Verrate dein Alter!"
+               ],
+    
+    wahrheit_f:[
+                "Wenn Dieter Bohlen der letzte Mann auf Erden wäre, würdest du mit ihm die Menschheit retten?",
+                "Du bist Bundeskanzler, was ist deine erste Amtshandlung?",
+                "Was war das lustigste, was du diese Woche gedacht/erlebt hast?",
+                "Was war dein erster Gedanke, als du dein Gegenüber zum ersten mal sahst?"
+                ],
+    
+    pflicht_m:[
+              "Zeige das letzte Meme, das du verschickt hast", 
+                "Stell unter Probe, wie gut dein Gegenüber umarmen kann!",
+               "Nimm den Mund voll Wasser und lass den anderen Grimassen oder ähnliches machen! 1min - los!",
+               "Präsentiere deinen besten Akzent!",
+                "Sing das Intro von Löwenkönig, so afrikanisch wie möglich 🇿🇦"
+              ],
+    
+    pflicht_f:["Zeige das letzte Meme, das du verschickt hast", 
+                "Stell unter Probe, wie gut dein Gegenüber umarmen kann!",
+               "Nimm den Mund voll Wasser und lass den anderen Grimassen oder ähnliches machen! 1min - los!",
+               "Präsentiere deinen besten Akzent!",
+                "Sing das Intro von Löwenkönig, so afrikanisch wie möglich 🇿🇦"
+              ],
   },
   wild:{
-    wahrheit_m:[""],
-    wahrheit_f:[""],
-    pflicht_m:[""],
-    pflicht_f:[""],
+    wahrheit_m:[
+                "Würdest du deine gebrauchten Socken online verkaufen?",
+                "Du bist in der Wüste. Am verdursten. würdest du Blut trinken, wenn es dein leben rettet?",
+                "Welche Nation würdest du auslöschen, wenn du könntest?",
+                "Du musst Mutter/Vater deines Chefs verführen. Wie gehst du vor?"
+                ],
+
+    wahrheit_f:[
+                "Du hast gebrauchte Unterhosen online verkauft, und findest raus - dein bester Freund hat bei dir eingekauft. Was tust du?", 
+                "Was war das ekligste, was du jemals in einer Umkleide gesehen hast?",
+                "Könntest du dir vorstellen, jemanden aus Indien zu heiraten?",
+                "Du musst Mutter/Vater deines Chefs verführen. Wie gehst du vor?"            
+                ],
+    
+    pflicht_m:[
+              "Zeige deine verführerischen Gang!",
+              "Du bist ein Bodybuilder. Heb dein Gegenüber hoch! Wenn du es nicht schaffst, verrat die Farbe deiner Unterwäsche 😏 ",
+              "Lass dein Gegenüber deinem letzten Kontakt eine Nachricht schreiben 💬"
+              ],
+    
+    pflicht_f:[
+              "Zeige deine verführerischen Gang!",
+              "Du bist ein Bodybuilder. Heb dein Gegenüber hoch! Wenn du es nicht schaffst, verrat die Farbe deiner Unterwäsche 😏 ",
+              "Lass dein Gegenüber deinem letzten Kontakt eine Nachricht schreiben 💬"
+              ],
+  
   },
   chaos:{
-    wahrheit_m:["Was ist der kühnste Gedanke, den du heute hattest?"],
-    wahrheit_f:["Was ist das Frechste, das du dir heute erlaubt hast zu denken?"],
-    pflicht_m:["Zieh eine Socke aus"],
-    pflicht_f:["Zieh zwei Socke aus"],
+    wahrheit_m:[
+              "Welchen Körperteil findest du am attraktivsten an deinem Gegenüber?",
+              "Wer ist dein ewiger Crush und wieso? 😏 ",
+              "Welchen Zeichentrick Charakter findest du lowkey hot?",
+              "Hast du schon mal etwas geklaut? 😯 "
+                ],
+    
+    wahrheit_f:[
+               "Welchen Körperteil findest du am attraktivsten an deinem Gegenüber?",
+                "Wer ist dein ewiger Crush und wieso? 😏 ",
+                "Welchen Zeichentrick Charakter findest du lowkey hot?",
+                "Hast du schon mal etwas geklaut? 😯 "
+                ],
+    
+    pflicht_m:[
+                "Spiel Schick Schnack Schnuck. Der Verlierer muss dem Gewinner einen Kuss auf die Schulter oder angespannten Bizeps geben 💪",
+                "Erzähl welche Position du noch nie ausprobiert hast, aber du interessant findest 😏", 
+                "Erzähl deine letzte Sex Fantasie 😈",
+                "Zieh ein Kleidungsstück aus, das mit H anfängt!",
+              "Zieh ein Kleidungsstück aus, das mit H anfängt!"
+              ],
+ 
+      pflicht_f:[
+                "Nimm einen Eiswürfel und leg ihn auf die Zunge für 10 Sekunden 👅 ",
+                "Erzähl welche Position du noch nie ausprobiert hast, aber du interessant findest 😏 ",
+                "Spiel Schick Schnack Schnuck. Der Verlierer muss dem Gewinner einen Kuss auf die Schulter oder angespannten Bizeps geben 💪",
+                "Erzähl deine letzte Sex Fantasie 😈 ",
+                "Zieh ein Kleidungsstück aus, das mit B anfängt!",
+                "Zieh ein Kleidungsstück aus, das mit O anfängt!"
+                ],
   },
 };
 
@@ -458,99 +531,7 @@ function initSplash() {
 }
 
 // ── AUDIO ENGINE ──────────────────────────────────────────────────────────────
-let audioCtx = null, masterGain = null;
-let oscNodes = [], lfoNodes = [], filterNode = null;
-let currentAudioLevel = 'soft';
 
-const AUDIO_CFG = {
-  soft:  { freqs:[55,82.4,110,164.8], detune:3,  lfoRate:0.07, lfoDepth:6,  cutoff:380,  vol:0.13 },
-  wild:  { freqs:[55,73.4,110,146.8], detune:7,  lfoRate:0.20, lfoDepth:20, cutoff:750,  vol:0.17 },
-  chaos: { freqs:[55,65.4,110,130.8], detune:14, lfoRate:0.38, lfoDepth:40, cutoff:1400, vol:0.23 },
-};
-
-function audioStart() {
-  if (muted || audioCtx) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime + 3.5);
-    masterGain.connect(audioCtx.destination);
-    buildLayer('soft');
-  } catch(e) { console.warn('Audio N/A', e); }
-}
-
-function buildLayer(level) {
-  if (!audioCtx) return;
-  oscNodes.forEach(o=>{ try{o.stop(audioCtx.currentTime+0.05);}catch(e){} });
-  lfoNodes.forEach(l=>{ try{l.stop(audioCtx.currentTime+0.05);l.disconnect();}catch(e){} });
-  if(filterNode){ try{filterNode.disconnect();}catch(e){} }
-  oscNodes=[]; lfoNodes=[];
-
-  const c = AUDIO_CFG[level];
-  filterNode = audioCtx.createBiquadFilter();
-  filterNode.type = 'lowpass';
-  filterNode.frequency.value = c.cutoff;
-  filterNode.Q.value = 1.4;
-  filterNode.connect(masterGain);
-
-  const delay = audioCtx.createDelay(2.0);
-  delay.delayTime.value = 0.5;
-  const delayFb = audioCtx.createGain(); delayFb.gain.value = 0.28;
-  const delayOut = audioCtx.createGain(); delayOut.gain.value = 0.22;
-  delay.connect(delayFb); delayFb.connect(delay);
-  delay.connect(delayOut); delayOut.connect(filterNode);
-
-  c.freqs.forEach((freq,i)=>{
-    const osc = audioCtx.createOscillator();
-    osc.type = i%2===0?'sine':'triangle';
-    osc.frequency.value = freq;
-    osc.detune.value = (i%2===0?1:-1)*c.detune;
-    const vg = audioCtx.createGain(); vg.gain.value = c.vol/c.freqs.length;
-    const lfo = audioCtx.createOscillator(); lfo.type='sine';
-    lfo.frequency.value = c.lfoRate+i*0.015;
-    const la = audioCtx.createGain(); la.gain.value = c.lfoDepth;
-    lfo.connect(la); la.connect(osc.frequency);
-    lfo.start(); lfoNodes.push(lfo);
-    osc.connect(vg); vg.connect(filterNode); vg.connect(delay);
-    osc.start(); oscNodes.push(osc);
-  });
-
-  if(level!=='soft'){
-    const sub=audioCtx.createOscillator(); sub.type='sine'; sub.frequency.value=27.5;
-    const sg=audioCtx.createGain(); sg.gain.value=level==='chaos'?0.1:0.055;
-    sub.connect(sg); sg.connect(masterGain); sub.start(); oscNodes.push(sub);
-  }
-  currentAudioLevel = level;
-}
-
-function audioSetLevel(level) {
-  if(!audioCtx||muted||level===currentAudioLevel) return;
-  masterGain.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime+1.2);
-  setTimeout(()=>{
-    if(!muted&&audioCtx){
-      buildLayer(level);
-      masterGain.gain.setValueAtTime(0.02,audioCtx.currentTime);
-      masterGain.gain.linearRampToValueAtTime(0.14,audioCtx.currentTime+2.0);
-    }
-  },1300);
-}
-
-function toggleMute() {
-  muted = !muted;
-  document.getElementById('mute-icon').textContent  = muted ? '🔇' : '🔊';
-  document.getElementById('mute-label').textContent = muted ? 'Musik aus' : 'Musik läuft';
-  document.getElementById('mute-btn').classList.toggle('muted', muted);
-  if (muted) {
-    if (masterGain) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
-  } else {
-    if (!audioCtx) { audioStart(); return; }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    buildLayer(currentAudioLevel);
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime + 0.6);
-  }
-}
 
 // ── SETUP ─────────────────────────────────────────────────────────────────────
 function renderSetup() {
