@@ -1,7 +1,7 @@
 {
-  "name": "Spin & Spill",
-  "short_name": "Spin & Spill",
-  "description": "Dreh. Ehrlich sein. Oder trinken.",
+  "name": "Spin & Spill by Illy",
+  "short_name": "Spin & Spill by Illy",
+  "description": "Dreh. Sei ehrlich oder mutig. Oder trink ;)",
   "start_url": "/spin-and-spill/",
   "scope": "/spin-and-spill/",
   "display": "fullscreen",
