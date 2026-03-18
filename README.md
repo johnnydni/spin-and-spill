@@ -2,7 +2,7 @@
 
 Ein mobiles Partyspiel mit Glücksrad — Wahrheit, Pflicht oder Shot.
 
-**Live spielen:** [Spin And Spill](https://johnnydni.github.io/spin-and-spill)
+**Live spielen:** [Spin And Spill by Illy](https://johnnydni.github.io/spin-and-spill)
 
 ---
 
@@ -11,7 +11,6 @@ Ein mobiles Partyspiel mit Glücksrad — Wahrheit, Pflicht oder Shot.
 - 🎡 Animiertes Glücksrad (Wahrheit / Pflicht / Shot)
 - 👥 Bis zu 8 Spieler mit Namenseingabe & Geschlecht
 - 📊 Automatisches Eskalations-System: **Soft → Wild → Chaos**
-- 📱 Fullscreen Mobile Layout mit Safe Areas (iPhone Notch etc.)
 - 🔌 Offline-fähig (PWA mit Service Worker)
 - 📲 Installierbar auf iOS & Android
 
@@ -28,4 +27,4 @@ Ein mobiles Partyspiel mit Glücksrad — Wahrheit, Pflicht oder Shot.
 1. Link öffnen
 2. Menü → „Zum Startbildschirm hinzufügen"
 3. Fertig
-|
+
