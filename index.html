@@ -114,7 +114,7 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   /* override absolute positioning for centering */
-  position: relative;
+  position: absolute;
   left: auto; right: auto;
 }
 /* wrapper needed since screen is absolute */
@@ -518,7 +518,7 @@ function dismissSplash() {
   const splash = document.getElementById('screen-splash');
   splash.classList.add('hide');
   setTimeout(()=>{ splash.style.display='none'; }, 700);
-  // Audio starts here — this IS a real user gesture
+
   
 }
 
