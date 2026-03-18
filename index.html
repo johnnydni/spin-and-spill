@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spin & Spill">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Spin & Spill</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#0a0a0f;
+  --surface:rgba(255,255,255,0.05);
+  --surface2:rgba(255,255,255,0.09);
+  --border:rgba(255,255,255,0.1);
+  --text:#f0eee8;
+  --muted:rgba(240,238,232,0.45);
+  --accent:#c8a97e;
+  --teal:#4ecdc4;
+  --pink:#ff6b9d;
+  --red:#ff3d3d;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --safe-l:   env(safe-area-inset-left,  0px);
+  --safe-r:   env(safe-area-inset-right, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── GRAIN OVERLAY ── */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:0.5;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; height:100%; }
+.screen.active { display:flex; flex-direction:column; }
+
+/* ══════════════════════════════════════════
+   SETUP SCREEN
+══════════════════════════════════════════ */
+#screen-setup {
+  padding:
+    calc(var(--safe-top) + 2.5rem)
+    calc(var(--safe-r) + 1.25rem)
+    calc(var(--safe-bot) + 1.5rem)
+    calc(var(--safe-l) + 1.25rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.logo { text-align:center; margin-bottom:2.5rem; }
+.logo h1 {
+  font-family:'Syne',sans-serif;
+  font-size:2.4rem; font-weight:800;
+  letter-spacing:-0.03em;
+  background:linear-gradient(135deg,#c8a97e,#e8d5b7,#c8a97e);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  line-height:1.1;
+}
+.logo p { color:var(--muted); font-size:0.85rem; margin-top:0.4rem; letter-spacing:0.02em; }
+
+.setup-label {
+  font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em;
+  color:var(--muted); margin-bottom:0.75rem;
+}
+
+.player-list { margin-bottom:0.75rem; }
+
+.player-row {
+  display:flex; align-items:center; gap:0.6rem;
+  margin-bottom:0.6rem;
+}
+.player-row input {
+  flex:1;
+  background:var(--surface2);
+  border:0.5px solid var(--border);
+  border-radius:14px;
+  padding:0.85rem 1rem;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:1rem;
+  outline:none;
+  -webkit-appearance:none;
+  transition:border-color 0.2s;
+}
+.player-row input:focus { border-color:var(--accent); }
+.player-row input::placeholder { color:var(--muted); }
+
+.del-btn {
+  width:40px; height:40px; border-radius:50%;
+  background:rgba(255,61,61,0.08);
+  border:0.5px solid rgba(255,61,61,0.2);
+  color:#ff6b6b; cursor:pointer;
+  font-size:1.1rem; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+
+.add-btn {
+  width:100%; padding:0.85rem;
+  background:var(--surface);
+  border:0.5px dashed rgba(255,255,255,0.15);
+  border-radius:14px;
+  color:var(--muted); cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:0.95rem;
+  transition:all 0.2s;
+}
+
+.start-btn {
+  width:100%; padding:1.1rem;
+  background:linear-gradient(135deg,#c8a97e,#b8944a);
+  border:none; border-radius:18px;
+  color:#1a0f00;
+  font-family:'Syne',sans-serif;
+  font-size:1.05rem; font-weight:700;
+  letter-spacing:0.04em; cursor:pointer;
+  margin-top:1.25rem;
+  box-shadow:0 4px 28px rgba(200,169,126,0.35);
+  transition:transform 0.12s, box-shadow 0.12s;
+}
+.start-btn:active { transform:scale(0.98); }
+
+/* ══════════════════════════════════════════
+   GAME SCREEN — fullscreen layout
+══════════════════════════════════════════ */
+#screen-game {
+  /* Use the full viewport, split into zones */
+  height: 100dvh;
+  display: grid;
+  grid-template-rows:
+    auto   /* top bar: level + players */
+    auto   /* progress */
+    1fr    /* wheel — takes remaining space */
+    auto;  /* result card */
+  padding:
+    calc(var(--safe-top) + 0.75rem)
+    calc(var(--safe-r)   + 1rem)
+    calc(var(--safe-bot) + 0.75rem)
+    calc(var(--safe-l)   + 1rem);
+  gap:0;
+  overflow:hidden;
+}
+
+/* TOP BAR */
+.top-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:0.65rem;
+}
+.level-pill {
+  padding:0.3rem 0.85rem; border-radius:999px;
+  font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase; transition:all 0.4s;
+}
+.level-soft  { background:rgba(78,205,196,0.12);  color:var(--teal); border:0.5px solid rgba(78,205,196,0.3); }
+.level-wild  { background:rgba(255,107,157,0.12); color:var(--pink); border:0.5px solid rgba(255,107,157,0.3); }
+.level-chaos { background:rgba(255,61,61,0.12);   color:var(--red);  border:0.5px solid rgba(255,61,61,0.3); }
+
+.shot-badge {
+  font-family:'Syne',sans-serif; font-size:0.8rem; font-weight:700;
+  color:var(--accent); opacity:0.8;
+}
+
+/* PLAYER STRIP */
+.player-strip {
+  display:flex; gap:0.4rem;
+  overflow-x:auto; overflow-y:hidden;
+  padding-bottom:0.4rem; margin-bottom:0.65rem;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.player-strip::-webkit-scrollbar { display:none; }
+.player-chip {
+  flex-shrink:0; padding:0.35rem 0.8rem; border-radius:999px;
+  border:0.5px solid var(--border); background:var(--surface);
+  font-size:0.78rem; color:var(--muted);
+  transition:all 0.25s; white-space:nowrap; cursor:pointer;
+  user-select:none;
+}
+.player-chip.active {
+  background:rgba(200,169,126,0.15);
+  border-color:rgba(200,169,126,0.5);
+  color:var(--accent); font-weight:500;
+}
+
+/* PROGRESS */
+.progress-wrap { margin-bottom:0.75rem; }
+.progress-track {
+  height:4px; background:var(--surface2);
+  border-radius:999px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; border-radius:999px;
+  background:linear-gradient(90deg,var(--teal),var(--accent),var(--pink));
+  transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  width:0%;
+}
+
+/* WHEEL ZONE */
+.wheel-zone {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  position:relative; flex:1; min-height:0;
+  padding:0.5rem 0;
+}
+.pointer {
+  position:absolute; top:0; left:50%;
+  transform:translateX(-50%);
+  width:0; height:0;
+  border-left:11px solid transparent;
+  border-right:11px solid transparent;
+  border-top:22px solid var(--accent);
+  z-index:10;
+  filter:drop-shadow(0 2px 10px rgba(200,169,126,0.7));
+}
+canvas#wheel {
+  border-radius:50%;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 0 50px rgba(200,169,126,0.12),
+    0 0 100px rgba(200,169,126,0.06);
+  touch-action:none;
+  display:block;
+}
+.spin-btn {
+  margin-top:1rem;
+  padding:0.85rem 2.8rem;
+  background:linear-gradient(135deg,#c8a97e,#b8944a);
+  border:none; border-radius:999px;
+  color:#1a0f00;
+  font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; letter-spacing:0.04em;
+  box-shadow:0 4px 24px rgba(200,169,126,0.35);
+  transition:transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+  user-select:none;
+}
+.spin-btn:active:not(:disabled) { transform:scale(0.96); }
+.spin-btn:disabled { opacity:0.45; }
+
+/* RESULT ZONE */
+.result-zone { padding-top:0.65rem; }
+
+.who-row {
+  text-align:center; font-size:0.75rem;
+  color:var(--muted); margin-bottom:0.45rem;
+  min-height:1.1rem;
+}
+.who-name { color:var(--accent); font-weight:500; }
+
+.result-card {
+  background:var(--surface);
+  border:0.5px solid var(--border);
+  border-radius:20px;
+  padding:1rem 1.25rem;
+  display:flex; align-items:center; gap:0.9rem;
+  position:relative; overflow:hidden;
+  transition:border-color 0.35s;
+  min-height:72px;
+}
+.result-card::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 0% 50%, var(--rg, transparent), transparent 60%);
+  pointer-events:none;
+}
+.result-emoji { font-size:1.6rem; flex-shrink:0; }
+.result-body  { flex:1; min-width:0; }
+.result-type  { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.12em; opacity:0.55; margin-bottom:0.2rem; }
+.result-text  { font-size:0.88rem; line-height:1.45; }
+
+.rc-wahrheit { --rg:rgba(78,205,196,0.1);  border-color:rgba(78,205,196,0.35); }
+.rc-pflicht  { --rg:rgba(200,169,126,0.1); border-color:rgba(200,169,126,0.35); }
+.rc-shot     { --rg:rgba(255,107,157,0.1); border-color:rgba(255,107,157,0.35); }
+.rc-idle     { opacity:0.35; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; top:calc(var(--safe-top) + 1rem); left:50%;
+  transform:translateX(-50%) translateY(-140px);
+  background:rgba(12,12,18,0.96);
+  backdrop-filter:blur(24px) saturate(1.6);
+  border:0.5px solid rgba(255,255,255,0.12);
+  border-radius:18px; padding:0.85rem 1.5rem;
+  font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700;
+  text-align:center; z-index:10000;
+  transition:transform 0.42s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── LEVEL-UP OVERLAY ── */
+.level-overlay {
+  position:fixed; inset:0; z-index:9998;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(10,10,15,0.92);
+  backdrop-filter:blur(12px);
+  opacity:0; pointer-events:none;
+  transition:opacity 0.3s;
+}
+.level-overlay.show { opacity:1; pointer-events:all; }
+.overlay-emoji { font-size:5rem; margin-bottom:1rem; animation:pulse 0.6s ease infinite alternate; }
+.overlay-title { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; margin-bottom:0.5rem; }
+.overlay-sub   { color:var(--muted); font-size:0.9rem; margin-bottom:2rem; }
+.overlay-btn {
+  padding:0.85rem 2.5rem; border-radius:999px;
+  background:linear-gradient(135deg,#c8a97e,#b8944a);
+  border:none; color:#1a0f00;
+  font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; letter-spacing:0.04em;
+}
+@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.08)} }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="toast" id="toast"></div>
+
+<!-- LEVEL UP OVERLAY -->
+<div class="level-overlay" id="level-overlay">
+  <div class="overlay-emoji" id="overlay-emoji">😏</div>
+  <div class="overlay-title" id="overlay-title">Wild Mode</div>
+  <div class="overlay-sub"   id="overlay-sub">Die Fragen werden heißer.</div>
+  <button class="overlay-btn" onclick="dismissOverlay()">Weiter gehts →</button>
+</div>
+
+<!-- SETUP SCREEN -->
+<div class="screen active" id="screen-setup">
+  <div class="logo">
+    <h1>Spin &amp; Spill</h1>
+    <p>Dreh. Ehrlich sein. Oder trinken.</p>
+  </div>
+  <p class="setup-label">Spieler eingeben</p>
+  <div class="player-list" id="player-list"></div>
+  <button class="add-btn" onclick="addPlayer()">+ Spieler hinzufügen</button>
+  <button class="start-btn" onclick="startGame()">Spiel starten →</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="screen-game">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <span class="level-pill level-soft" id="level-pill">Soft 😌</span>
+    <span class="shot-badge">🍻 <span id="shot-count">0</span> Shots</span>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="player-strip" id="player-strip"></div>
+  <p style="font-size:0.65rem;color:var(--muted);margin-bottom:0.5rem;letter-spacing:0.04em">Namen antippen → Geschlecht wechseln</p>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- WHEEL -->
+  <div class="wheel-zone" id="wheel-zone">
+    <div class="pointer" id="pointer"></div>
+    <canvas id="wheel"></canvas>
+    <button class="spin-btn" id="spin-btn" onclick="spin()">Drehen ✦</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-zone">
+    <div class="who-row" id="who-row"></div>
+    <div class="result-card rc-idle" id="result-card">
+      <div class="result-emoji">🎡</div>
+      <div class="result-body">
+        <div class="result-text" style="opacity:0.45">Dreh das Rad...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const SEG_TYPES   = ['wahrheit','pflicht','shot','wahrheit','pflicht','shot'];
+const SEG_LABELS  = ['Wahrheit','Pflicht','Shot 🍻','Wahrheit','Pflicht','Shot 🍻'];
+const SEG_COLORS  = ['#1d3a3a','#2a1f0f','#2a1020','#1a3535','#251c0d','#25101d'];
+const SEG_ACCENTS = ['#4ecdc4','#c8a97e','#ff6b9d','#4ecdc4','#c8a97e','#ff6b9d'];
+const N   = 6;
+const ARC = (Math.PI * 2) / N;
+
+const CONTENT = {
+  soft:{
+    wahrheit_m:["Was war dein peinlichstes Date?","Welche Eigenschaft findest du bei einer Frau am anziehendsten?","Was war das Mutigste, das du je für jemanden getan hast?","Woran merkst du, dass du jemanden wirklich magst?","Was würdest du tun, wenn du wüsstest, dass du nicht scheitern kannst?","Was ist das schönste Kompliment, das du je erhalten hast?","Beschreibe deinen perfekten Sonntagmorgen.","Was fällt dir als erstes auf, wenn du jemanden triffst?"],
+    wahrheit_f:["Was war dein peinlichstes Date?","Welche Eigenschaft findest du bei einem Mann am anziehendsten?","Wann hast du dich zuletzt wirklich unverstanden gefühlt?","Was machst du, wenn du allein und glücklich bist?","Wie merkst du, dass du jemanden gut findest?","Was ist das Romantischste, das du je erlebt hast?","Welches Kompliment hörst du am liebsten?","Was wünschst du dir, dass mehr Menschen an dir bemerken?"],
+    pflicht_m:["Zeig deinen Lieblingssong auf Spotify.","Sag der Person links von dir etwas Aufrichtiges.","Beschreibe dich selbst in 3 Wörtern.","Mach einen Witz, der tatsächlich gut ist.","Zeig das letzte Meme, das du verschickt hast.","Sag laut, was du heute an dir gut findest."],
+    pflicht_f:["Zeig deinen Lieblingssong auf Spotify.","Sag der Person rechts von dir etwas Aufrichtiges.","Beschreibe deinen Traumabend in 3 Wörtern.","Mach ein Gesicht, das du im Spiegel nie zeigen würdest.","Zeig das letzte Foto auf deinem Handy.","Erzähl eine Sache, die heute gut war."],
+  },
+  wild:{
+    wahrheit_m:["Wann hast du zuletzt jemanden wirklich beeindrucken wollen?","Was ist das Interessanteste an dir, das die wenigsten wissen?","Bist du eher der Typ, der den ersten Schritt macht?","Was wäre ein echter Dealbreaker für dich bei jemandem?","Wann hast du dich zuletzt wirklich lebendig gefühlt?","Was macht eine Person wirklich unwiderstehlich für dich?","Wie lange dauert es, bis du jemandem wirklich vertraust?"],
+    wahrheit_f:["Was ist das Mutigste, das du je in Bezug auf Gefühle getan hast?","Was wäre dein perfekter Flirt-Abend?","Was macht einen Mann auf Anhieb interessant für dich?","Wann hast du dich zuletzt richtig gut in deiner Haut gefühlt?","Was ist deine Stärke, die andere oft unterschätzen?","Womit kann man dich wirklich beeindrucken?","Was war dein kühnster Gedanke heute?"],
+    pflicht_m:["Flüster der Person neben dir etwas Nettes ins Ohr.","Beschreibe jemanden im Raum, ohne seinen Namen zu nennen.","Sag der Person, die du am längsten kennst, etwas, das du nie sagst.","Zeig deine beste Impression von jemandem hier.","Halte 30 Sekunden Augenkontakt mit jemandem ohne zu lachen."],
+    pflicht_f:["Flüster der Person neben dir einen aufrichtigen Gedanken ins Ohr.","Sag jemandem etwas, das du dich sonst nie trauen würdest.","Beschreib deinen Schwarm, ohne seinen Namen zu nennen.","Halte 30 Sekunden Augenkontakt mit dem Spannendsten im Raum.","Zeig deinen besten Blick in die Kamera."],
+  },
+  chaos:{
+    wahrheit_m:["Was ist der kühnste Gedanke, den du heute hattest?","Mit wem hier würdest du am liebsten den Rest des Abends verbringen?","Was wäre dein erster Schritt, wenn du wüsstest, dass sie Ja sagt?","Was ist deine geheimste Qualität, die du noch keiner gezeigt hast?"],
+    wahrheit_f:["Was ist der kühnste Gedanke, den du heute hattest?","Wenn du heute Abend könntest – was würdest du tun?","Mit wem hier hast du am meisten gelacht heute?","Was ist das Frechste, das du dir heute erlaubt hast zu denken?"],
+    pflicht_m:["Zieh ein Kleidungsstück aus, dessen Name mit S, U, T, P oder H beginnt.","Schreib jemandem im Raum eine ehrliche, direkte Nachricht auf dessen Handy.","Zeig den besten Augenzwinkerer, den du drauf hast.","Sag jemandem im Raum genau, was du wirklich denkst – unzensiert.","Gib jemandem ein Kompliment, das du normalerweise nie aussprechen würdest."],
+    pflicht_f:["Zieh ein Kleidungsstück aus, dessen Name mit S, U, T, P oder H beginnt.","Schreib jemandem im Raum eine ehrliche Nachricht auf seinem Handy.","Zeig deinen besten, frechsten Blick.","Sag jemandem genau, was dir heute aufgefallen ist – ganz ehrlich.","Gib jemandem ein Kompliment, das du normalerweise für dich behältst."],
+  },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let players = [], genders = {};
+let currentPlayer = 0, totalShots = 0;
+let spinning = false, wheelAngle = 0;
+let canvasSize = 260;
+let pendingLevel = null;
+
+// ── Canvas sizing ─────────────────────────────────────────────────────────────
+function resizeCanvas() {
+  const zone = document.getElementById('wheel-zone');
+  const zoneH = zone.clientHeight;
+  const zoneW = zone.clientWidth;
+  // Leave space for spin button (~80px) and pointer
+  const available = Math.min(zoneW, zoneH - 90);
+  canvasSize = Math.max(200, Math.min(340, available));
+  const c = document.getElementById('wheel');
+  c.width  = canvasSize;
+  c.height = canvasSize;
+  // Reposition pointer
+  document.getElementById('pointer').style.top = '0px';
+  drawWheel();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// ── Setup ─────────────────────────────────────────────────────────────────────
+function renderSetup() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Name ${i+1}" value="${p}"
+        oninput="players[${i}]=this.value">
+      <button class="del-btn" onclick="removePlayer(${i})">×</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function addPlayer() {
+  if (players.length >= 8) return;
+  const name = `Spieler ${players.length + 1}`;
+  players.push('');
+  genders[''] = 'm';
+  renderSetup();
+  setTimeout(() => {
+    const ins = document.querySelectorAll('.player-row input');
+    ins[ins.length - 1].focus();
+  }, 60);
+}
+
+function removePlayer(i) { players.splice(i, 1); renderSetup(); }
+
+function startGame() {
+  const filtered = players.filter(p => p.trim());
+  if (filtered.length < 2) { alert('Mindestens 2 Spieler!'); return; }
+  players = filtered;
+  // init all to 'm' by default — toggled in-game via chip tap
+  players.forEach(p => { if (!genders[p]) genders[p] = 'm'; });
+  currentPlayer = 0; totalShots = 0; wheelAngle = 0;
+  show('screen-game');
+  setTimeout(() => { resizeCanvas(); renderPlayerStrip(); updateHUD(); }, 50);
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Player strip ──────────────────────────────────────────────────────────────
+function renderPlayerStrip() {
+  const strip = document.getElementById('player-strip');
+  strip.innerHTML = '';
+  players.forEach((p, i) => {
+    const chip = document.createElement('div');
+    const g = genders[p] || 'm';
+    chip.className = 'player-chip' + (i === currentPlayer ? ' active' : '');
+    chip.textContent = p + (g === 'f' ? ' ♀' : ' ♂');
+    chip.title = 'Tippen zum Geschlecht wechseln';
+    chip.onclick = () => {
+      genders[p] = genders[p] === 'm' ? 'f' : 'm';
+      renderPlayerStrip();
+    };
+    strip.appendChild(chip);
+  });
+  const chips = strip.querySelectorAll('.player-chip');
+  if (chips[currentPlayer]) chips[currentPlayer].scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+// ── HUD ───────────────────────────────────────────────────────────────────────
+function getLevel() { return totalShots >= 4 ? 'chaos' : totalShots >= 2 ? 'wild' : 'soft'; }
+
+function updateHUD() {
+  document.getElementById('progress-fill').style.width = Math.min(totalShots / 5 * 100, 100) + '%';
+  document.getElementById('shot-count').textContent = totalShots;
+  const l = getLevel();
+  const pill = document.getElementById('level-pill');
+  pill.className = 'level-pill level-' + l;
+  pill.textContent = l === 'soft' ? 'Soft 😌' : l === 'wild' ? 'Wild 😏' : 'Chaos 😈';
+}
+
+// ── Wheel ─────────────────────────────────────────────────────────────────────
+function drawWheel() {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const s = canvasSize;
+  const cx = s/2, cy = s/2, r = s/2 - 4;
+  ctx.clearRect(0, 0, s, s);
+
+  for (let i = 0; i < N; i++) {
+    const startA = wheelAngle - Math.PI/2 + ARC*i;
+    const endA   = startA + ARC;
+
+    // Segment fill
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx, cy, r, startA, endA); ctx.closePath();
+    ctx.fillStyle = SEG_COLORS[i]; ctx.fill();
+
+    // Divider
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1; ctx.stroke();
+
+    // Accent rim arc
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, r, startA, endA);
+    ctx.strokeStyle = SEG_ACCENTS[i]; ctx.lineWidth = 3; ctx.globalAlpha = 0.35; ctx.stroke();
+    ctx.restore();
+
+    // Label
+    const fontSize = Math.max(10, Math.round(s * 0.048));
+    const mid = startA + ARC/2;
+    ctx.save();
+    ctx.translate(cx + Math.cos(mid)*r*0.63, cy + Math.sin(mid)*r*0.63);
+    ctx.rotate(mid + Math.PI/2);
+    ctx.fillStyle = SEG_ACCENTS[i];
+    ctx.font = `bold ${fontSize}px Syne, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(SEG_LABELS[i], 0, 0);
+    ctx.restore();
+  }
+
+  // Center hole
+  ctx.beginPath(); ctx.arc(cx, cy, s*0.08, 0, Math.PI*2);
+  ctx.fillStyle = '#0a0a0f'; ctx.fill();
+  ctx.strokeStyle = 'rgba(200,169,126,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, s*0.025, 0, Math.PI*2);
+  ctx.fillStyle = '#c8a97e'; ctx.fill();
+}
+
+function getWinningSegment() {
+  const offset = ((-wheelAngle) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
+  return Math.floor(offset / ARC) % N;
+}
+
+// ── Spin ──────────────────────────────────────────────────────────────────────
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+  document.getElementById('result-card').className = 'result-card rc-idle';
+  document.getElementById('result-card').innerHTML = '<div class="result-emoji">🎡</div><div class="result-body"><div class="result-text" style="opacity:0.45">Spinning...</div></div>';
+  document.getElementById('who-row').innerHTML = '';
+
+  const targetSeg   = Math.floor(Math.random() * N);
+  const extraSpins  = 6 + Math.floor(Math.random() * 4);
+  const targetOff   = ARC * targetSeg + ARC / 2;
+  const currentOff  = ((-wheelAngle) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
+  let delta = targetOff - currentOff;
+  if (delta < 0) delta += Math.PI*2;
+  const totalDelta  = extraSpins * Math.PI*2 + delta;
+  const startAngle  = wheelAngle;
+  const endAngle    = wheelAngle - totalDelta;
+  const duration    = 3500;
+  const startTime   = performance.now();
+
+  const easeOut = t => 1 - Math.pow(1 - t, 4);
+
+  function frame(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    wheelAngle = startAngle + (endAngle - startAngle) * easeOut(t);
+    drawWheel();
+    if (t < 1) { requestAnimationFrame(frame); }
+    else {
+      wheelAngle = endAngle; drawWheel();
+      spinning = false; btn.disabled = false;
+      showResult(getWinningSegment());
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ── Result ────────────────────────────────────────────────────────────────────
+function showResult(segIndex) {
+  const type   = SEG_TYPES[segIndex];
+  const player = players[currentPlayer];
+  const gender = genders[player] || 'm';
+  const level  = getLevel();
+  const card   = document.getElementById('result-card');
+
+  let text = '', cls = '', emoji = '', typeLabel = '';
+
+  if (type === 'wahrheit') {
+    const pool = CONTENT[level]['wahrheit_' + gender];
+    text = pool[Math.floor(Math.random() * pool.length)];
+    cls = 'rc-wahrheit'; emoji = '💬'; typeLabel = 'Wahrheit';
+  } else if (type === 'pflicht') {
+    const pool = CONTENT[level]['pflicht_' + gender];
+    text = pool[Math.floor(Math.random() * pool.length)];
+    cls = 'rc-pflicht'; emoji = '✦'; typeLabel = 'Pflicht';
+  } else {
+    const prevLevel = level;
+    totalShots++;
+    updateHUD();
+    const newLevel = getLevel();
+    if (newLevel !== prevLevel) {
+      pendingLevel = newLevel;
+      setTimeout(() => showLevelOverlay(newLevel), 400);
+    }
+    text = 'Trink einen Shot – keine Ausreden! 🍻';
+    cls = 'rc-shot'; emoji = '🍻'; typeLabel = 'Shot';
+  }
+
+  card.className = 'result-card ' + cls;
+  card.innerHTML = `<div class="result-emoji">${emoji}</div><div class="result-body"><div class="result-type">${typeLabel}</div><div class="result-text">${text}</div></div>`;
+
+  document.getElementById('who-row').innerHTML = `<span class="who-name">${player}</span> ist dran`;
+
+  currentPlayer = (currentPlayer + 1) % players.length;
+  setTimeout(() => renderPlayerStrip(), 500);
+}
+
+// ── Level overlay ─────────────────────────────────────────────────────────────
+function showLevelOverlay(level) {
+  const cfg = {
+    wild:  { emoji:'😏', title:'Wild Mode', sub:'Die Fragen werden heißer.' },
+    chaos: { emoji:'😈', title:'CHAOS MODUS', sub:'Ab jetzt wird\'s explizit.' },
+  };
+  const c = cfg[level] || {};
+  document.getElementById('overlay-emoji').textContent = c.emoji;
+  document.getElementById('overlay-title').textContent = c.title;
+  document.getElementById('overlay-sub').textContent   = c.sub;
+  document.getElementById('level-overlay').classList.add('show');
+}
+
+function dismissOverlay() {
+  document.getElementById('level-overlay').classList.remove('show');
+}
+
+// ── Toast (fallback) ──────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+addPlayer(); addPlayer(); addPlayer();
+renderSetup();
+
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
