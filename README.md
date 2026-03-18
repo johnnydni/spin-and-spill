@@ -2,7 +2,7 @@
 
 Ein mobiles Partyspiel mit Glücksrad — Wahrheit, Pflicht oder Shot.
 
-**Live spielen:** [https://DEIN-USERNAME.github.io/spin-and-spill](https://DEIN-USERNAME.github.io/spin-and-spill)
+**Live spielen:** [Spin And Spill](https://johnnydni.github.io/spin-and-spill)
 
 ---
 
