@@ -519,7 +519,7 @@ function dismissSplash() {
   splash.classList.add('hide');
   setTimeout(()=>{ splash.style.display='none'; }, 700);
   // Audio starts here — this IS a real user gesture
-  audioStart();
+  
 }
 
 function initSplash() {
@@ -575,7 +575,6 @@ function startGame() {
       updateHUD();
     });
   });
-  if(!audioCtx&&!muted) audioStart();
 }
 
 function show(id) {
@@ -706,7 +705,7 @@ function showResult(segIndex){
   } else {
     const prevLevel=level; totalShots++; updateHUD();
     const newLevel=getLevel();
-    if(newLevel!==prevLevel){ setTimeout(()=>showLevelOverlay(newLevel),400); audioSetLevel(newLevel); }
+    if(newLevel!==prevLevel){ setTimeout(()=>showLevelOverlay(newLevel),400); }
     text='Trink einen Shot – keine Ausreden! 🍻';
     cls='rc-shot';emoji='🍻';typeLabel='Shot';
   }
