@@ -367,7 +367,6 @@ canvas#wheel {
     <div class="result-card rc-idle" id="result-card">
       <div class="result-emoji">🎡</div>
       <div class="result-body"><div class="result-text" style="opacity:0.45">Dreh das Rad...</div></div>
-    </div>
   </div>
 </div>
 
@@ -720,7 +719,7 @@ function showResult(segIndex){
 
 // ── LEVEL OVERLAY ─────────────────────────────────────────────────────────────
 function showLevelOverlay(level){
-  const cfg={wild:{emoji:'😏',title:'Wild Mode',sub:'Die Fragen werden heißer.'},chaos:{emoji:'😈',title:'CHAOS MODUS',sub:"Ab jetzt wird's explizit."}};
+  const cfg={wild:{emoji:'😏',title:'Wild Mode',sub:'Die Fragen werden wilder.'},chaos:{emoji:'😈',title:'CHAOS MODUS',sub:"Ab jetzt wird's explizit."}};
   const c=cfg[level]||{};
   document.getElementById('overlay-emoji').textContent=c.emoji;
   document.getElementById('overlay-title').textContent=c.title;
